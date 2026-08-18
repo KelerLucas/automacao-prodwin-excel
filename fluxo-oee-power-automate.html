@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxo Base OEE · Power Automate Desktop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #12151a;
+    --panel: #191e25;
+    --panel-2: #1f2530;
+    --border: #2a323d;
+    --amber: #f5a623;
+    --teal: #4fd1c5;
+    --red: #e8556a;
+    --text: #e7e9ec;
+    --muted: #8b95a1;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --disp: 'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(245,166,35,0.08), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(79,209,197,0.07), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding-bottom:80px;
+  }
+  a{color:inherit;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width:980px;
+    margin:0 auto;
+    padding:72px 24px 40px;
+  }
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 0 3px rgba(79,209,197,0.15);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.4;}
+  }
+  h1{
+    font-family:var(--disp);
+    font-weight:700;
+    font-size:clamp(32px, 5vw, 50px);
+    letter-spacing:-0.01em;
+    line-height:1.08;
+    max-width:14ch;
+  }
+  h1 span{color:var(--amber);}
+  .hero p{
+    color:var(--muted);
+    font-size:16px;
+    max-width:56ch;
+    margin-top:18px;
+  }
+
+  .stat-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin-top:36px;
+  }
+  .stat{
+    background:var(--panel);
+    padding:18px 20px;
+  }
+  .stat .n{
+    font-family:var(--mono);
+    font-size:24px;
+    font-weight:600;
+    color:var(--amber);
+  }
+  .stat .l{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  @media(max-width:640px){
+    .stat-row{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ---------- PIPELINE ---------- */
+  .pipeline{
+    max-width:980px;
+    margin:56px auto 0;
+    padding:0 24px;
+    position:relative;
+  }
+  .rail{
+    position:absolute;
+    left:47px;
+    top:8px;
+    bottom:8px;
+    width:2px;
+    background:linear-gradient(to bottom, var(--border), var(--border) 96%, transparent);
+    z-index:0;
+  }
+  @media(max-width:640px){ .rail{left:27px;} }
+
+  .phase{
+    position:relative;
+    z-index:1;
+    display:flex;
+    gap:24px;
+    margin-bottom:44px;
+  }
+  @media(max-width:640px){ .phase{gap:14px;} }
+
+  .phase-marker{
+    flex:0 0 auto;
+    width:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top:4px;
+  }
+  @media(max-width:640px){ .phase-marker{width:32px;} }
+  .phase-num{
+    font-family:var(--mono);
+    font-size:13px;
+    font-weight:600;
+    width:32px;height:32px;
+    border-radius:50%;
+    background:var(--panel-2);
+    border:1.5px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text);
+    flex:0 0 auto;
+  }
+  .phase.loop .phase-num{
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+  .phase.cond .phase-num{
+    border-color:var(--red);
+    color:var(--red);
+  }
+
+  .phase-body{flex:1; min-width:0;}
+  .phase-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .phase-head h2{
+    font-family:var(--disp);
+    font-size:19px;
+    font-weight:600;
+  }
+  .badge{
+    font-family:var(--mono);
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:100px;
+    border:1px solid var(--amber);
+    color:var(--amber);
+    letter-spacing:.02em;
+  }
+  .badge.red{border-color:var(--red); color:var(--red);}
+  .phase-desc{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:16px;
+    max-width:60ch;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .step{
+    display:grid;
+    grid-template-columns:40px 1fr;
+    gap:14px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--border);
+  }
+  .step:last-child{border-bottom:none;}
+  .step-n{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted);
+    padding-top:2px;
+  }
+  .step-title{
+    font-weight:600;
+    font-size:14.5px;
+  }
+  .step-detail{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .step-detail code{
+    font-family:var(--mono);
+    font-size:12.5px;
+    background:var(--panel-2);
+    padding:1px 6px;
+    border-radius:5px;
+    color:var(--teal);
+  }
+  .step-detail code.v{color:var(--amber);}
+
+  /* nested (if/else) */
+  .branch{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--border);
+    border-top:1px solid var(--border);
+  }
+  @media(max-width:700px){ .branch{grid-template-columns:1fr;} }
+  .branch-col{background:var(--panel);}
+  .branch-head{
+    padding:10px 18px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;
+  }
+  .branch-head.yes{color:var(--teal); border-bottom:1px solid var(--border);}
+  .branch-head.no{color:var(--red); border-bottom:1px solid var(--border);}
+
+  .loop-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--amber);
+    background:rgba(245,166,35,0.08);
+    border:1px solid rgba(245,166,35,0.35);
+    padding:5px 10px;
+    border-radius:8px;
+    margin-top:10px;
+  }
+  .loop-tag svg{width:13px;height:13px;}
+  .spin{animation:spin 3.5s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- VARS GLOSSARY ---------- */
+  .glossary{
+    max-width:980px;
+    margin:60px auto 0;
+    padding:0 24px;
+  }
+  .glossary h2{
+    font-family:var(--disp);
+    font-size:22px;
+    margin-bottom:6px;
+  }
+  .glossary p{color:var(--muted); font-size:14px; margin-bottom:20px;}
+  .var-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+    gap:10px;
+  }
+  .var-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .var-card .name{
+    font-family:var(--mono);
+    color:var(--teal);
+    font-size:13px;
+    font-weight:600;
+  }
+  .var-card .desc{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+
+  footer{
+    max-width:980px;
+    margin:64px auto 0;
+    padding:24px 24px 0;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:12.5px;
+    font-family:var(--mono);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .spin, .eyebrow .dot{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow"><span class="dot"></span>power automate desktop · robô de coleta de dados</div>
+  <h1>Base <span>OEE</span> — fluxo automatizado de exportação e consolidação</h1>
+  <p>Robô que percorre 324 dias de um sistema web (ProdWin), exporta o relatório diário de OEE em Excel, valida se há produção registrada e consolida o resultado em uma base mestre — linha a linha, sem intervenção manual.</p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n">31</div><div class="l">ações</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">loops aninhados</div></div>
+    <div class="stat"><div class="n">324×</div><div class="l">dias percorridos</div></div>
+    <div class="stat"><div class="n">50ms</div><div class="l">atraso entre ações</div></div>
+  </div>
+</div>
+
+<div class="pipeline">
+  <div class="rail"></div>
+
+  <!-- FASE 1 -->
+  <div class="phase">
+    <div class="phase-marker"><div class="phase-num">1</div></div>
+    <div class="phase-body">
+      <div class="phase-head"><h2>Preparação do intervalo de datas</h2></div>
+      <p class="phase-desc">Define o período que o robô vai varrer, convertendo os textos de data em objetos datetime que serão usados no loop principal.</p>
+      <div class="card">
+        <div class="step">
+          <div class="step-n">01</div>
+          <div><div class="step-title">Converter texto em datetime</div>
+          <div class="step-detail">Converte <code class="v">'8 julho 2025'</code> → <code>DataAtual</code></div></div>
+        </div>
+        <div class="step">
+          <div class="step-n">02</div>
+          <div><div class="step-title">Converter texto em datetime</div>
+          <div class="step-detail">Converte <code class="v">'29 Maio 2026'</code> → <code>DataFinal</code></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 2: LOOP PRINCIPAL -->
+  <div class="phase loop">
+    <div class="phase-marker"><div class="phase-num">2</div></div>
+    <div class="phase-body">
+      <div class="phase-head">
+        <h2>Loop principal — exportação diária</h2>
+        <span class="badge">LoopIndex · 1 a 324</span>
+      </div>
+      <p class="phase-desc">Para cada dia do intervalo, o robô monta a data, entra no sistema web, exporta o relatório em Excel e aguarda o download.</p>
+      <div class="card">
+        <div class="step"><div class="step-n">04</div>
+          <div><div class="step-title">Adicionar a datetime</div>
+          <div class="step-detail">Soma <code>LoopIndex</code> dia(s) a <code>DataAtual</code> → <code>DataLoop</code></div></div></div>
+        <div class="step"><div class="step-n">05</div>
+          <div><div class="step-title">Converter datetime em texto</div>
+          <div class="step-detail"><code>DataLoop</code> no formato <code class="v">dd/MM/yyyy</code> → <code>DataFormatada</code></div></div></div>
+        <div class="step"><div class="step-n">06</div>
+          <div><div class="step-title">Iniciar novo Microsoft Edge</div>
+          <div class="step-detail">Abre a URL do sistema (ProdWin) → <code>Browser</code></div></div></div>
+        <div class="step"><div class="step-n">07–08</div>
+          <div><div class="step-title">Preencher campos de data na página</div>
+          <div class="step-detail">Preenche <code class="v">ctl00$cphMain$...</code> (data início e fim) com <code>DataFormatada</code></div></div></div>
+        <div class="step"><div class="step-n">09</div>
+          <div><div class="step-title">Clicar em "Exportar"</div>
+          <div class="step-detail">Dispara o download do relatório do dia</div></div></div>
+        <div class="step"><div class="step-n">10</div>
+          <div><div class="step-title">Aguardar</div>
+          <div class="step-detail">8 segundos, para garantir que o arquivo termine de baixar</div></div></div>
+        <div class="step"><div class="step-n">11</div>
+          <div><div class="step-title">Obter arquivos na pasta</div>
+          <div class="step-detail">Busca arquivo <code class="v">*OEE*</code> em <code>C:\Users\lucas.batista\</code> → <code>ArquivoBaixado</code></div></div></div>
+        <div class="step"><div class="step-n">12</div>
+          <div><div class="step-title">Iniciar o Excel</div>
+          <div class="step-detail">Abre <code>ArquivoBaixado[0]</code> → <code>ExcelInstance</code></div></div></div>
+        <div class="step"><div class="step-n">13</div>
+          <div><div class="step-title">Enviar teclas</div>
+          <div class="step-detail"><code class="v">{Alt}S</code> — salva/confirma na janela ativa</div></div></div>
+        <div class="step"><div class="step-n">14</div>
+          <div><div class="step-title">Ler da planilha</div>
+          <div class="step-detail">Célula <code class="v">G34</code> → <code>ValorTotal</code>, usada como checagem de produção</div></div></div>
+      </div>
+      <div class="loop-tag">
+        <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+        repete uma vez por dia do intervalo
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 3: CONDICIONAL -->
+  <div class="phase cond">
+    <div class="phase-marker"><div class="phase-num">3</div></div>
+    <div class="phase-body">
+      <div class="phase-head">
+        <h2>Validação — houve produção no dia?</h2>
+        <span class="badge red">IF ValorTotal &lt;&gt; 0</span>
+      </div>
+      <p class="phase-desc">Só vale a pena consolidar o dia se a célula de total (G34) veio diferente de zero. Dias sem produção são descartados sem gravar nada.</p>
+      <div class="card">
+        <div class="branch">
+          <div class="branch-col">
+            <div class="branch-head yes">✓ então (dia com produção)</div>
+            <div class="step"><div class="step-n">16</div><div><div class="step-title">Copiar células</div>
+              <div class="step-detail">Intervalo <code class="v">A3:R33</code> do relatório do dia</div></div></div>
+            <div class="step"><div class="step-n">17</div><div><div class="step-title">Fechar o Excel</div>
+              <div class="step-detail">Fecha <code>ExcelInstance</code> (relatório do dia)</div></div></div>
+            <div class="step"><div class="step-n">18</div><div><div class="step-title">Iniciar o Excel</div>
+              <div class="step-detail">Abre a base mestre <code class="v">P:\FECHAMENTO MAIONESE\</code> → <code>ExcelBase</code></div></div></div>
+            <div class="step"><div class="step-n">19</div><div><div class="step-title">Obter primeira linha livre</div>
+              <div class="step-detail">Coluna <code class="v">A</code> → <code>PrimeiraLinhaVazia</code></div></div></div>
+            <div class="step"><div class="step-n">20</div><div><div class="step-title">Colar células</div>
+              <div class="step-detail">Cola em <code>A[PrimeiraLinhaVazia]</code> da <code>ExcelBase</code></div></div></div>
+          </div>
+          <div class="branch-col">
+            <div class="branch-head no">✕ senão (dia sem produção)</div>
+            <div class="step"><div class="step-n">28</div><div><div class="step-title">Fechar o Excel</div>
+              <div class="step-detail">Fecha <code>ExcelInstance</code> e descarta o dia, sem gravar</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 4: LOOP GRAVACAO -->
+  <div class="phase loop">
+    <div class="phase-marker"><div class="phase-num">4</div></div>
+    <div class="phase-body">
+      <div class="phase-head">
+        <h2>Loop de gravação — data na coluna W</h2>
+        <span class="badge">LinhaOffset · 0 a 30</span>
+      </div>
+      <p class="phase-desc">Depois de colar o bloco de 31 linhas copiado, o robô volta linha a linha só para escrever a data correspondente na coluna W de cada uma — já que a data não vem junto no intervalo copiado.</p>
+      <div class="card">
+        <div class="step"><div class="step-n">21</div>
+          <div><div class="step-title">Definir variável</div>
+          <div class="step-detail"><code>LinhaAnterior</code> = <code>PrimeiraLinhaVazia</code> − 1</div></div></div>
+        <div class="step"><div class="step-n">23</div>
+          <div><div class="step-title">Definir variável</div>
+          <div class="step-detail"><code>LinhaAtual</code> = <code>PrimeiraLinhaVazia</code> + <code>LinhaOffset</code></div></div></div>
+        <div class="step"><div class="step-n">24</div>
+          <div><div class="step-title">Gravar na planilha</div>
+          <div class="step-detail"><code>DataFormatada</code> → coluna <code class="v">W</code>, linha <code>LinhaAtual</code> da <code>ExcelBase</code></div></div></div>
+        <div class="step"><div class="step-n">26</div>
+          <div><div class="step-title">Fechar o Excel</div>
+          <div class="step-detail">Salva e fecha <code>ExcelBase</code></div></div></div>
+      </div>
+      <div class="loop-tag">
+        <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.6-6.36"/><path d="M21 3v6h-6"/></svg>
+        repete para as 31 linhas coladas
+      </div>
+    </div>
+  </div>
+
+  <!-- FASE 5 -->
+  <div class="phase">
+    <div class="phase-marker"><div class="phase-num">5</div></div>
+    <div class="phase-body">
+      <div class="phase-head"><h2>Encerramento</h2></div>
+      <p class="phase-desc">Ao final da varredura dos 324 dias, o robô limpa os arquivos temporários baixados.</p>
+      <div class="card">
+        <div class="step"><div class="step-n">30</div>
+          <div><div class="step-title">Excluir arquivos</div>
+          <div class="step-detail">Limpa os downloads temporários em <code>C:\Users\lucas.batista\</code></div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="glossary">
+  <h2>Variáveis usadas</h2>
+  <p>Referência rápida das variáveis que atravessam o fluxo.</p>
+  <div class="var-grid">
+    <div class="var-card"><div class="name">DataAtual / DataFinal</div><div class="desc">Limites do intervalo de datas a exportar</div></div>
+    <div class="var-card"><div class="name">LoopIndex</div><div class="desc">Contador do loop principal (dia atual, 1–324)</div></div>
+    <div class="var-card"><div class="name">DataLoop / DataFormatada</div><div class="desc">Data do dia corrente, em datetime e como texto dd/MM/yyyy</div></div>
+    <div class="var-card"><div class="name">ArquivoBaixado</div><div class="desc">Caminho do relatório OEE baixado no dia</div></div>
+    <div class="var-card"><div class="name">ExcelInstance</div><div class="desc">Instância do Excel com o relatório diário aberto</div></div>
+    <div class="var-card"><div class="name">ValorTotal</div><div class="desc">Valor da célula G34 — usado para validar se houve produção</div></div>
+    <div class="var-card"><div class="name">ExcelBase</div><div class="desc">Instância do Excel com a base mestre de fechamento</div></div>
+    <div class="var-card"><div class="name">PrimeiraLinhaVazia</div><div class="desc">Próxima linha livre na base mestre</div></div>
+    <div class="var-card"><div class="name">LinhaOffset / LinhaAtual</div><div class="desc">Contador e linha absoluta no loop de gravação da coluna W</div></div>
+  </div>
+</div>
+
+<footer>
+  <span>power automate desktop · fluxo "base oee"</span>
+  <span>documentação gerada a partir do fluxo original</span>
+</footer>
+
+</body>
+</html>
